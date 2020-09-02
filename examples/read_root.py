@@ -22,34 +22,60 @@ file_path = str(args.file)
 
 with uproot.open(file_path) as f:
 
+    #--------------------------------------------------------------------------
     # get metadata from ROOT file
-    metadata = f['metadata']
-    detector_length_x = metadata.array('detector_length_x')[0]
-    detector_length_y = metadata.array('detector_length_y')[0]
-    detector_length_z = metadata.array('detector_length_z')[0]
+    #--------------------------------------------------------------------------
 
+    metadata = f['metadata']
+
+    # get detector dimensions
+    detector_length_x = metadata.array('detector_length_x')[0]  # cm
+    detector_length_y = metadata.array('detector_length_y')[0]  # cm
+    detector_length_z = metadata.array('detector_length_z')[0]  # cm
+
+    # get parameters used in Q_PIX_RTD
+    drift_velocity = metadata.array('drift_velocity')[0]  # cm/ns
+    longitudinal_diffusion_ = metadata.array('longitudinal_diffusion')[0]  # cm^2/ns
+    transverse_diffusion_ = metadata.array('transverse_diffusion')[0]  # cm^2/ns
+    electron_lifetime_ = metadata.array('electron_lifetime')[0]  # ns
+    readout_dimensions_ = metadata.array('readout_dimensions')[0]  # cm
+    pixel_size_ = metadata.array('pixel_size')[0]  # cm
+    reset_threshold_ = metadata.array('reset_threshold')[0]  # electrons
+    sample_time_ = metadata.array('sample_time')[0]  # ns
+    buffer_window_ = metadata.array('buffer_window')[0]  # ns
+    dead_time_ = metadata.array('dead_time')[0]  # ns
+    charge_loss_ = metadata.array('charge_loss')[0]  # 0 is off, 1 is on
+
+    #--------------------------------------------------------------------------
     # get event tree from ROOT file
+    #--------------------------------------------------------------------------
+
     tree = f['event_tree']
 
     # list of branches that we want to access
     branches = [
+
         # event number
         'event',
 
-        # MC particle information
+        # MC particle information [Q_PIX_GEANT4]
         'particle_track_id', 'particle_pdg_code',
         'particle_mass', 'particle_initial_energy',
 
-        # MC hit information
+        # MC hit information [Q_PIX_GEANT4]
         'hit_energy_deposit', 'hit_track_id', 'hit_process_key',
         'hit_start_x', 'hit_start_y', 'hit_start_z', 'hit_start_t',
         'hit_end_x', 'hit_end_y', 'hit_end_z', 'hit_end_t',
 
-        # pixel information
-        'pixel_x', 'pixel_y', 'pixel_reset',
+        # pixel information [Q_PIX_RTD]
+        'pixel_x', 'pixel_y', 'pixel_reset', 'pixel_tslr',
+
     ]
 
-    # loop over branches in the event tree
+    #--------------------------------------------------------------------------
+    # iterate through the event tree
+    #--------------------------------------------------------------------------
+
     for arrays in tree.iterate(branches=branches, namedecode='utf-8'):
 
         # get event number array
@@ -72,6 +98,7 @@ with uproot.open(file_path) as f:
         pixel_x_array = arrays['pixel_x']
         pixel_y_array = arrays['pixel_y']
         pixel_reset_array = arrays['pixel_reset']
+        pixel_tslr_array = arrays['pixel_tslr']
 
         # get number of events
         number_events = len(event_array)
@@ -86,6 +113,7 @@ with uproot.open(file_path) as f:
             pixel_x = pixel_x_array[idx]
             pixel_y = pixel_y_array[idx]
             pixel_reset = pixel_reset_array[idx]
+            pixel_tslr = pixel_tslr_array[idx]
 
             # get number of pixels in event
             number_pixels = len(pixel_x)
@@ -101,8 +129,14 @@ with uproot.open(file_path) as f:
                 # print list of resets associated with this pixel
                 print('  resets:', pixel_reset[px])
 
+                # print list of resets associated with this pixel
+                print('  time since last reset:', pixel_tslr[px])
+
+                # get number of resets associated with this pixel
+                number_resets = len(pixel_reset[px])
+
                 # loop over resets
-                for reset in pixel_reset[px]:
-                    # do something with `reset'
-                    pass
+                for rst in range(number_resets):
+                    reset = pixel_reset[px][rst]  # reset time
+                    tslr = pixel_tslr[px][rst]  # time since last reset
 
