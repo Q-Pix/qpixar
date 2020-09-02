@@ -35,16 +35,16 @@ with uproot.open(file_path) as f:
 
     # get parameters used in Q_PIX_RTD
     drift_velocity = metadata.array('drift_velocity')[0]  # cm/ns
-    longitudinal_diffusion_ = metadata.array('longitudinal_diffusion')[0]  # cm^2/ns
-    transverse_diffusion_ = metadata.array('transverse_diffusion')[0]  # cm^2/ns
-    electron_lifetime_ = metadata.array('electron_lifetime')[0]  # ns
-    readout_dimensions_ = metadata.array('readout_dimensions')[0]  # cm
-    pixel_size_ = metadata.array('pixel_size')[0]  # cm
-    reset_threshold_ = metadata.array('reset_threshold')[0]  # electrons
-    sample_time_ = metadata.array('sample_time')[0]  # ns
-    buffer_window_ = metadata.array('buffer_window')[0]  # ns
-    dead_time_ = metadata.array('dead_time')[0]  # ns
-    charge_loss_ = metadata.array('charge_loss')[0]  # 0 is off, 1 is on
+    longitudinal_diffusion = metadata.array('longitudinal_diffusion')[0]  # cm^2/ns
+    transverse_diffusion = metadata.array('transverse_diffusion')[0]  # cm^2/ns
+    electron_lifetime = metadata.array('electron_lifetime')[0]  # ns
+    readout_dimensions = metadata.array('readout_dimensions')[0]  # cm
+    pixel_size = metadata.array('pixel_size')[0]  # cm
+    reset_threshold = metadata.array('reset_threshold')[0]  # electrons
+    sample_time = metadata.array('sample_time')[0]  # ns
+    buffer_window = metadata.array('buffer_window')[0]  # ns
+    dead_time = metadata.array('dead_time')[0]  # ns
+    charge_loss = metadata.array('charge_loss')[0]  # 0 is off, 1 is on
 
     #--------------------------------------------------------------------------
     # get event tree from ROOT file
