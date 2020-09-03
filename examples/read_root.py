@@ -137,6 +137,52 @@ with uproot.open(file_path) as f:
 
                 # loop over resets
                 for rst in range(number_resets):
-                    reset = pixel_reset[px][rst]  # reset time
-                    tslr = pixel_tslr[px][rst]  # time since last reset
+
+                    # get reset time
+                    reset = pixel_reset[px][rst]
+
+                    # get time since last reset
+                    tslr = pixel_tslr[px][rst]
+
+            #------------------------------------------------------------------
+            # extract spatial information from pixels and resets
+            #------------------------------------------------------------------
+
+            # pixel array
+            pix_array = list(np.empty((1, 4)))
+
+            # iterate through pixels and fill pixel array
+            for px in range(number_pixels):
+
+                # get number of resets for this pixel
+                number_resets = len(pixel_reset[px])
+
+                # iterate through resets
+                for rst in range(number_resets):
+
+                    # get reset time
+                    reset = pixel_reset[px][rst]
+
+                    # get time since last reset
+                    tslr = pixel_tslr[px][rst]
+
+                    # append to pixel array
+                    pix_array.append([pixel_x[px], pixel_y[px], reset, tslr])
+
+            # convert list to array
+            if len(pix_array) > 1:
+                # ignore dummy element
+                pix_array = np.array(pix_array[1:], dtype=int)
+            else:
+                pix_array = np.array(pix_array, dtype=int)
+
+            # convert to physical units
+            pix_x = pix_array[:, 0] * pixel_size  # cm
+            pix_y = pix_array[:, 1] * pixel_size  # cm
+            pix_z = pix_array[:, 2] * drift_velocity  # cm
+            pix_rtd = pix_array[:, 3]  # ns
+
+            #------------------------------------------------------------------
+
+            # do things with pixels here
 
