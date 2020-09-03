@@ -39,12 +39,12 @@ MC muon event in 3D mode
 MARLEY event in 2D mode
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. image:: images/muon_event_2d.png
+.. image:: images/marley_event_2d.png
    :alt: marley event in 2D mode
 
 MARLEY event in 3D mode
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. image:: images/muon_event_3d.png
+.. image:: images/marley_event_3d.png
    :alt: marley event in 3D mode
 
