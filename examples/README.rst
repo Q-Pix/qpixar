@@ -24,21 +24,27 @@ The event display example can be started in 3D mode by adding ``--3d`` to the co
 
 and can be toggled while it is running.
 
-MC muon event in 2D and 3D
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+MC muon event in 2D mode
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: images/muon_event_2d.png
-   :alt: muon event in 2D
+   :alt: muon event in 2D mode
+
+MC muon event in 3D mode
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: images/muon_event_3d.png
-   :alt: muon event in 3D
+   :alt: muon event in 3D mode
 
-MARLEY event in 2D and 3D
-~~~~~~~~~~~~~~~~~~~~~~~~~
+MARLEY event in 2D mode
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: images/muon_event_2d.png
-   :alt: marley event in 2D
+   :alt: marley event in 2D mode
+
+MARLEY event in 3D mode
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: images/muon_event_3d.png
-   :alt: marley event in 3D
+   :alt: marley event in 3D mode
 
