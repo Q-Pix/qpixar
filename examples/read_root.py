@@ -180,7 +180,7 @@ with uproot.open(file_path) as f:
             pix_x = pix_array[:, 0] * pixel_size  # cm
             pix_y = pix_array[:, 1] * pixel_size  # cm
             pix_z = pix_array[:, 2] * drift_velocity  # cm
-            pix_rtd = pix_array[:, 3]  # ns
+            pix_tslr = pix_array[:, 3]  # ns
 
             #------------------------------------------------------------------
 

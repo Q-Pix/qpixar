@@ -274,7 +274,7 @@ Press enter to continue... """
             pix_x = b[:, 0] * pixel_size  # cm
             pix_y = b[:, 1] * pixel_size  # cm
             pix_z = b[:, 2] * drift_velocity  # cm
-            pix_rtd = b[:, 3]  # ns
+            pix_tslr = b[:, 3]  # ns
 
             #------------------------------------------------------------------
 
@@ -368,7 +368,7 @@ Press enter to continue... """
 
                 # colormap = plt.cm.jet
                 colormap = plt.cm.viridis
-                normalize = matplotlib.colors.Normalize(vmin=0, vmax=0.005)
+                normalize = matplotlib.colors.Normalize(vmin=0, vmax=50)
                 scalarmappable = matplotlib.cm.ScalarMappable(norm=normalize, cmap=colormap)
 
                 #--------------------------------------------------------------
@@ -376,15 +376,15 @@ Press enter to continue... """
                 # plot pixels in 3d
 
                 ax_pix_xyz = fig.add_subplot(gs[1:, :], projection='3d')
-                dq = np.empty(pix_rtd.shape)
-                if len(pix_rtd) > 1:
-                    dq = 1/pix_rtd
+                dq = np.empty(pix_tslr.shape)
+                if len(pix_tslr) > 1:
+                    dq = reset_threshold/pix_tslr
                 sc_pix_xyz = ax_pix_xyz.scatter(
-                    pix_z, pix_x, pix_y, alpha=1.0, s=dq*10.0, c=dq,
+                    pix_z, pix_x, pix_y, alpha=1.0, s=dq/1000., c=dq,
                     cmap=colormap, norm=normalize)
 
                 cb_pix_xyz = fig.colorbar(sc_pix_xyz, ax=ax_pix_xyz, shrink=0.8)
-                cb_pix_xyz.set_label('1/RTD [ns$^{-1}$]')
+                cb_pix_xyz.set_label('[electrons/ns]')
 
                 #--------------------------------------------------------------
 
