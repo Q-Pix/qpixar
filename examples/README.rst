@@ -5,7 +5,7 @@ This directory contains example code. A simple reader example that reads from an
 
 .. code-block:: bash
 
-    python read_root.py /path/to/root/file
+    python read_root.py /path/to/file.root
 
 Event display example
 ---------------------
@@ -14,13 +14,13 @@ The event display example that displays events of an output ROOT file produced f
 
 .. code-block:: bash
 
-    python qpix_ed.py /path/to/root/file
+    python qpix_ed.py /path/to/file.root
 
 The event display example can be started in 3D mode by adding ``--3d`` to the command
 
 .. code-block:: bash
 
-    python qpix_ed.py /path/to/root/file --3d
+    python qpix_ed.py /path/to/file.root --3d
 
 and can be toggled while it is running.
 
