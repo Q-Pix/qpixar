@@ -68,6 +68,16 @@ with uproot.open(file_path) as f:
         # event number
         'event',
 
+        # generator particle information [Q_PIX_GEANT4]
+        'generator_initial_number_particles',
+        'generator_initial_particle_pdg_code',
+        'generator_initial_particle_energy',
+        'generator_initial_particle_mass',
+        'generator_final_number_particles',
+        'generator_final_particle_pdg_code',
+        'generator_final_particle_energy',
+        'generator_final_particle_mass',
+
         # MC particle information [Q_PIX_GEANT4]
         'particle_track_id', 'particle_pdg_code',
         'particle_mass', 'particle_initial_energy',
@@ -102,6 +112,16 @@ Press enter to continue... """
 
         # get event number array
         event_array = arrays['event']
+
+        # get generator particle arrays
+        gen_ip_number_array   = arrays['generator_initial_number_particles']
+        gen_ip_pdg_code_array = arrays['generator_initial_particle_pdg_code']
+        gen_ip_energy_array   = arrays['generator_initial_particle_energy']
+        gen_ip_mass_array     = arrays['generator_initial_particle_mass']
+        gen_fp_number_array   = arrays['generator_final_number_particles']
+        gen_fp_pdg_code_array = arrays['generator_final_particle_pdg_code']
+        gen_fp_energy_array   = arrays['generator_final_particle_energy']
+        gen_fp_mass_array     = arrays['generator_final_particle_mass']
 
         # get MC hit arrays
         hit_end_x_array = arrays['hit_end_x']
@@ -152,11 +172,63 @@ Press enter to continue... """
             # get number of hits in event
             number_hits = len(hit_end_x)
 
+            # get generator particles in event
+            gen_ip_number   = gen_ip_number_array[idx]
+            gen_ip_pdg_code = gen_ip_pdg_code_array[idx]
+            gen_ip_energy   = gen_ip_energy_array[idx]
+            gen_ip_mass     = gen_ip_mass_array[idx]
+            gen_fp_number   = gen_fp_number_array[idx]
+            gen_fp_pdg_code = gen_fp_pdg_code_array[idx]
+            gen_fp_energy   = gen_fp_energy_array[idx]
+            gen_fp_mass     = gen_fp_mass_array[idx]
+
             #------------------------------------------------------------------
             # print event number
             #------------------------------------------------------------------
 
-            print('\nEvent: {} / {}'.format(idx, number_events))
+            print("\nEvent: {} / {}\n".format(idx, number_events))
+
+            #------------------------------------------------------------------
+            # print information of generator particles
+            #------------------------------------------------------------------
+
+            print("----------------------------------------------------------"
+                  "\nNumber of initial generator particles: {}\n"
+                  "----------------------------------------------------------"
+                  "\n"
+                  .format(gen_ip_number))
+
+            for p in range(gen_ip_number):
+                msg = """Initial particle #{}
+  PDG code:       {}
+  Energy:         {} MeV
+  Kinetic energy: {} MeV
+""".format(p+1, gen_ip_pdg_code[p], gen_ip_energy[p], gen_ip_energy[p]-gen_ip_mass[p])
+
+                print(msg)
+
+            print("----------------------------------------------------------"
+                  "\nNumber of final generator particles: {}\n"
+                  "----------------------------------------------------------"
+                  "\n"
+                  .format(gen_fp_number))
+
+            for p in range(gen_fp_number):
+                msg = """Final particle #{}
+  PDG code:       {}
+  Energy:         {} MeV
+  Kinetic energy: {} MeV
+""".format(p+1, gen_fp_pdg_code[p], gen_fp_energy[p], gen_fp_energy[p]-gen_fp_mass[p])
+
+                print(msg)
+
+            print("----------------------------------------------------------")
+
+            #------------------------------------------------------------------
+            # print event number
+            #------------------------------------------------------------------
+
+            print("\nEvent: {} / {}\n".format(idx, number_events))
 
             #------------------------------------------------------------------
             # initialize figure and gridspec
