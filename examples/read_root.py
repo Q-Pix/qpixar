@@ -29,22 +29,22 @@ with uproot.open(file_path) as f:
     metadata = f['metadata']
 
     # get detector dimensions
-    detector_length_x = metadata.array('detector_length_x')[0]  # cm
-    detector_length_y = metadata.array('detector_length_y')[0]  # cm
-    detector_length_z = metadata.array('detector_length_z')[0]  # cm
+    detector_length_x = metadata['detector_length_x'].array()[0]  # cm
+    detector_length_y = metadata['detector_length_y'].array()[0]  # cm
+    detector_length_z = metadata['detector_length_z'].array()[0]  # cm
 
     # get parameters used in Q_PIX_RTD
-    drift_velocity = metadata.array('drift_velocity')[0]  # cm/ns
-    longitudinal_diffusion = metadata.array('longitudinal_diffusion')[0]  # cm^2/ns
-    transverse_diffusion = metadata.array('transverse_diffusion')[0]  # cm^2/ns
-    electron_lifetime = metadata.array('electron_lifetime')[0]  # ns
-    readout_dimensions = metadata.array('readout_dimensions')[0]  # cm
-    pixel_size = metadata.array('pixel_size')[0]  # cm
-    reset_threshold = metadata.array('reset_threshold')[0]  # electrons
-    sample_time = metadata.array('sample_time')[0]  # ns
-    buffer_window = metadata.array('buffer_window')[0]  # ns
-    dead_time = metadata.array('dead_time')[0]  # ns
-    charge_loss = metadata.array('charge_loss')[0]  # 0 is off, 1 is on
+    drift_velocity = metadata['drift_velocity'].array()[0]  # cm/ns
+    longitudinal_diffusion = metadata['longitudinal_diffusion'].array()[0]  # cm^2/ns
+    transverse_diffusion = metadata['transverse_diffusion'].array()[0]  # cm^2/ns
+    electron_lifetime = metadata['electron_lifetime'].array()[0]  # ns
+    readout_dimensions = metadata['readout_dimensions'].array()[0]  # cm
+    pixel_size = metadata['pixel_size'].array()[0]  # cm
+    reset_threshold = metadata['reset_threshold'].array()[0]  # electrons
+    sample_time = metadata['sample_time'].array()[0]  # ns
+    buffer_window = metadata['buffer_window'].array()[0]  # ns
+    dead_time = metadata['dead_time'].array()[0]  # ns
+    charge_loss = metadata['charge_loss'].array()[0]  # 0 is off, 1 is on
 
     #--------------------------------------------------------------------------
     # get event tree from ROOT file
@@ -76,7 +76,7 @@ with uproot.open(file_path) as f:
     # iterate through the event tree
     #--------------------------------------------------------------------------
 
-    for arrays in tree.iterate(branches=branches, namedecode='utf-8'):
+    for arrays in tree.iterate(filter_name=branches):
 
         # get event number array
         event_array = arrays['event']
