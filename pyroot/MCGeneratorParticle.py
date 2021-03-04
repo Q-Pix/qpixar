@@ -24,5 +24,3 @@ class MCGeneratorParticle:
         self.pz = pz
         self.energy = energy
 
-        self.mc_hit_indices = []
-
