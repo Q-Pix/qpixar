@@ -77,6 +77,12 @@ class EventHandler:
         # get event number
         self.event = self.tree.event
 
+        # reset lists
+        self.mc_generator_initial_particles = []
+        self.mc_generator_final_particles = []
+        self.mc_particles = []
+        self.mc_hits = []
+
     #--------------------------------------------------------------------------
     # fetch MC generator particles from event tree
     #--------------------------------------------------------------------------
