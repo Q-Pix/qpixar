@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # -----------------------------------------------------------------------------
-#  pyroot_interface_example.py
+#  qpyroot_interface_example.py
 #
-#  Example for reading from ROOT file using the pyroot interface
+#  Example for reading from ROOT file using the qpyroot interface
 #   * Author: Everybody is an author!
 #   * Creation date: 1 March 2021
 # -----------------------------------------------------------------------------
@@ -17,9 +17,13 @@ import qpyroot
 # file_path = './examples/root/muon_rtd_2020-09-08.root'
 file_path = '/Volumes/seagate/work/qpix/supernova_test/rtd/nu_e/Nu_e-rtd-39.root'
 
+# intialize the file handler
 file_handler = qpyroot.FileHandler(file_path)
+
+# initialize the event handler
 event_handler = qpyroot.EventHandler(file_handler)
 
+# get number of entries
 number_entries = event_handler.number_entries()
 
 # prompt message
