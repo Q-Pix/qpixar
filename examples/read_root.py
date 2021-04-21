@@ -34,16 +34,16 @@ with uproot.open(file_path) as f:
     detector_length_z = metadata['detector_length_z'].array()[0]  # cm
 
     # get parameters used in Q_PIX_RTD
-    drift_velocity = metadata['drift_velocity'].array()[0]  # cm/ns
-    longitudinal_diffusion = metadata['longitudinal_diffusion'].array()[0]  # cm^2/ns
-    transverse_diffusion = metadata['transverse_diffusion'].array()[0]  # cm^2/ns
-    electron_lifetime = metadata['electron_lifetime'].array()[0]  # ns
+    drift_velocity = metadata['drift_velocity'].array()[0]  # cm/s
+    longitudinal_diffusion = metadata['longitudinal_diffusion'].array()[0]  # cm^2/s
+    transverse_diffusion = metadata['transverse_diffusion'].array()[0]  # cm^2/s
+    electron_lifetime = metadata['electron_lifetime'].array()[0]  # s
     readout_dimensions = metadata['readout_dimensions'].array()[0]  # cm
     pixel_size = metadata['pixel_size'].array()[0]  # cm
     reset_threshold = metadata['reset_threshold'].array()[0]  # electrons
-    sample_time = metadata['sample_time'].array()[0]  # ns
-    buffer_window = metadata['buffer_window'].array()[0]  # ns
-    dead_time = metadata['dead_time'].array()[0]  # ns
+    sample_time = metadata['sample_time'].array()[0]  # s
+    buffer_window = metadata['buffer_window'].array()[0]  # s
+    dead_time = metadata['dead_time'].array()[0]  # s
     charge_loss = metadata['charge_loss'].array()[0]  # 0 is off, 1 is on
 
     #--------------------------------------------------------------------------
@@ -180,7 +180,7 @@ with uproot.open(file_path) as f:
             pix_x = pix_array[:, 0] * pixel_size  # cm
             pix_y = pix_array[:, 1] * pixel_size  # cm
             pix_z = pix_array[:, 2] * drift_velocity  # cm
-            pix_tslr = pix_array[:, 3]  # ns
+            pix_tslr = pix_array[:, 3] * 1e9 # ns
 
             #------------------------------------------------------------------
 

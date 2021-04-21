@@ -32,15 +32,15 @@ class FileHandler:
             self.detector_length_y = self.metadata.detector_length_y  # cm
             self.detector_length_z = self.metadata.detector_length_z  # cm
 
-            self.drift_velocity = self.metadata.drift_velocity  # cm/ns
-            self.longitudinal_diffusion = self.metadata.longitudinal_diffusion  # cm^2/ns
-            self.transverse_diffusion = self.metadata.transverse_diffusion  # cm^2/ns
-            self.electron_lifetime = self.metadata.electron_lifetime  # ns
+            self.drift_velocity = self.metadata.drift_velocity  # cm/s
+            self.longitudinal_diffusion = self.metadata.longitudinal_diffusion  # cm^2/s
+            self.transverse_diffusion = self.metadata.transverse_diffusion  # cm^2/s
+            self.electron_lifetime = self.metadata.electron_lifetime  # s
             self.readout_dimensions = self.metadata.readout_dimensions  # cm
             self.pixel_size = self.metadata.pixel_size  # cm
             self.reset_threshold = self.metadata.reset_threshold  # electrons
-            self.sample_time = self.metadata.sample_time  # ns
-            self.buffer_window = self.metadata.buffer_window  # ns
-            self.dead_time = self.metadata.dead_time  # ns
+            self.sample_time = self.metadata.sample_time  # s
+            self.buffer_window = self.metadata.buffer_window  # s
+            self.dead_time = self.metadata.dead_time  # s
             self.charge_loss = self.metadata.charge_loss  # 0 is off, 1 is on
 

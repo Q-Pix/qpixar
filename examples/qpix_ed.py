@@ -45,16 +45,16 @@ with uproot.open(file_path) as f:
     detector_length_z = metadata['detector_length_z'].array()[0]  # cm
 
     # get parameters used in Q_PIX_RTD
-    drift_velocity = metadata['drift_velocity'].array()[0]  # cm/ns
-    longitudinal_diffusion = metadata['longitudinal_diffusion'].array()[0]  # cm^2/ns
-    transverse_diffusion = metadata['transverse_diffusion'].array()[0]  # cm^2/ns
-    electron_lifetime = metadata['electron_lifetime'].array()[0]  # ns
+    drift_velocity = metadata['drift_velocity'].array()[0]  # cm/s
+    longitudinal_diffusion = metadata['longitudinal_diffusion'].array()[0]  # cm^2/s
+    transverse_diffusion = metadata['transverse_diffusion'].array()[0]  # cm^2/s
+    electron_lifetime = metadata['electron_lifetime'].array()[0]  # s
     readout_dimensions = metadata['readout_dimensions'].array()[0]  # cm
     pixel_size = metadata['pixel_size'].array()[0]  # cm
     reset_threshold = metadata['reset_threshold'].array()[0]  # electrons
-    sample_time = metadata['sample_time'].array()[0]  # ns
-    buffer_window = metadata['buffer_window'].array()[0]  # ns
-    dead_time = metadata['dead_time'].array()[0]  # ns
+    sample_time = metadata['sample_time'].array()[0]  # s
+    buffer_window = metadata['buffer_window'].array()[0]  # s
+    dead_time = metadata['dead_time'].array()[0]  # s
     charge_loss = metadata['charge_loss'].array()[0]  # 0 is off, 1 is on
 
     #--------------------------------------------------------------------------
@@ -329,7 +329,7 @@ Press enter to continue... """
             # iterate through pixels and fill dummy arrays/lists
             for px in range(number_pixels):
                 number_resets = len(pixel_reset[px])
-                a[pixel_y[px], pixel_x[px]] += number_resets
+                a[pixel_x[px], pixel_y[px]] += number_resets
                 for rst in range(number_resets):
                     reset = pixel_reset[px][rst]
                     tslr = pixel_tslr[px][rst]
@@ -339,15 +339,15 @@ Press enter to continue... """
             # convert list to array
             if len(b) > 1:
                 # ignore dummy element
-                b = np.array(b[1:], dtype=int)
+                b = np.array(b[1:], dtype=float)
             else:
-                b = np.array(b, dtype=int)
+                b = np.array(b, dtype=float)
 
             # convert to physical units
             pix_x = b[:, 0] * pixel_size  # cm
             pix_y = b[:, 1] * pixel_size  # cm
             pix_z = b[:, 2] * drift_velocity  # cm
-            pix_tslr = b[:, 3]  # ns
+            pix_tslr = b[:, 3] * 1e9  # ns
 
             #------------------------------------------------------------------
 
@@ -441,7 +441,7 @@ Press enter to continue... """
 
                 # colormap = plt.cm.jet
                 colormap = plt.cm.viridis
-                normalize = matplotlib.colors.Normalize(vmin=0, vmax=50)
+                normalize = matplotlib.colors.Normalize(vmin=0, vmax=1000)
                 scalarmappable = matplotlib.cm.ScalarMappable(norm=normalize, cmap=colormap)
 
                 #--------------------------------------------------------------
