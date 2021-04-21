@@ -64,7 +64,7 @@ for idx in range(number_entries):
 """ % (idx, event_handler.run(), event_handler.event())
     print(info)
 
-    # fetch MC generator particles
+    # fetch containers of MCGeneratorParticle objects
     mc_generator_initial_particles = event_handler.mc_generator_initial_particles()
     mc_generator_final_particles = event_handler.mc_generator_final_particles()
 
@@ -98,7 +98,7 @@ for idx in range(number_entries):
         mc_generator_particle_pz = mc_generator_particle.pz()
         mc_generator_particle_energy = mc_generator_particle.energy()
 
-    # fetch MC particles
+    # fetch container of MCParticle objects
     mc_particles = event_handler.mc_particles()
 
     # loop over MC particles
@@ -120,7 +120,7 @@ for idx in range(number_entries):
         mc_particle_initial_pz = mc_particle.initial_pz()
         mc_particle_initial_energy = mc_particle.initial_energy()
 
-    # fetch MC hits
+    # fetch container of MCHit objects
     mc_hits = event_handler.mc_hits()
 
     # loop over MC hits
@@ -134,10 +134,10 @@ for idx in range(number_entries):
         mc_hit_energy_deposit = mc_hit.energy_deposit()
         mc_hit_process_key = mc_hit.process_key()
 
-    # fetch pixels
+    # fetch container of Pixel objects
     pixels = event_handler.pixels()
 
-    # loop over pixels
+    # loop over pixels with resets
     for pix_idx in range(event_handler.number_pixels()):
         pixel = pixels[pix_idx]
         pixel_x = pixel.x()
