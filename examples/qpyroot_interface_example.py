@@ -53,8 +53,11 @@ for idx in range(number_entries):
     # match the MC hits to the MC particles
     event_handler.match_mc_hits_to_mc_particles()
 
-    # load pixels
-    event_handler.load_pixels()
+    # load pixels without matching resets to the MC particles
+    # event_handler.load_pixels()
+
+    # load pixels and match resets to the MC particles
+    event_handler.load_pixels(match_resets_to_mc_particles=True)
 
     # print some basic information about the current event
     info = """
@@ -101,6 +104,10 @@ for idx in range(number_entries):
     # fetch container of MCParticle objects
     mc_particles = event_handler.mc_particles()
 
+    # fetch dictionary of MC particles where the key is the track ID and the
+    # value is the MCParticle object
+    mc_particle_map = event_handler.mc_particle_map()
+
     # loop over MC particles
     for p_idx in range(event_handler.number_mc_particles()):
         mc_particle = mc_particles[p_idx]
@@ -143,11 +150,33 @@ for idx in range(number_entries):
         pixel_x = pixel.x()
         pixel_y = pixel.y()
         number_resets = pixel.number_resets()
-        reset_array = pixel.reset_array()
-        tslr_array = pixel.tslr_array()
+        # reset_array = pixel.reset_array()
+        # tslr_array = pixel.tslr_array()
+        reset_array = pixel.resets()
+
         for reset_idx in range(number_resets):
             reset = reset_array[reset_idx]
-            tslr = tslr_array[reset_idx]
+            time = reset.time()
+            tslr = reset.tslr()
+
+            # get track IDs and number of electrons for this reset
+            mc_track_ids = reset.mc_track_ids()
+            mc_weights = reset.mc_weights()
+
+            # get number of track IDs for this reset
+            number_track_ids = len(mc_track_ids)
+
+            # loop over track IDs for this reset
+            for trk_idx in range(number_track_ids):
+
+                # track ID
+                track_id = mc_track_ids[trk_idx]
+
+                # number of electrons
+                number_electrons = mc_weights[trk_idx]
+
+                # get PDG code of this track ID
+                pdg_code = mc_particle_map[track_id].pdg_code()
 
     # wait for user input
     user_input = input()
