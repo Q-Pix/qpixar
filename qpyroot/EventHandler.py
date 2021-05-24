@@ -15,6 +15,7 @@ from .MCGeneratorParticle import MCGeneratorParticle
 from .MCParticle import MCParticle
 from .MCHit import MCHit
 from .Pixel import Pixel
+from .Reset import Reset
 
 class EventHandler:
 
@@ -37,6 +38,8 @@ class EventHandler:
         self.mc_particles_ = []
         self.mc_hits_ = []
         self.pixels_ = []
+
+        self.mc_particle_map_ = {}
 
         # initialize counters
         self.number_mc_generator_initial_particles_ = 0
@@ -92,6 +95,8 @@ class EventHandler:
         self.mc_particles_ = []
         self.mc_hits_ = []
         self.pixels_ = []
+
+        self.mc_particle_map_ = {}
 
         # reset counters
         self.number_mc_generator_initial_particles_ = 0
@@ -163,9 +168,12 @@ class EventHandler:
     def load_mc_particles(self):
 
         self.mc_particles_ = []
+        self.mc_particle_map_ = {}
         self.number_mc_particles_ = self.tree_.number_particles
 
         for idx in range(self.number_mc_particles_):
+
+            track_id = self.tree_.particle_track_id[idx]
 
             mc_particle = MCParticle(
                 track_id=self.tree_.particle_track_id[idx],
@@ -185,6 +193,7 @@ class EventHandler:
                 initial_energy=self.tree_.particle_initial_energy[idx])
 
             self.mc_particles_.append(mc_particle)
+            self.mc_particle_map_[track_id] = mc_particle
 
     #--------------------------------------------------------------------------
     # fetch MC hits from event tree
@@ -226,15 +235,28 @@ class EventHandler:
     # fetch pixels from event tree
     #--------------------------------------------------------------------------
 
-    def load_pixels(self):
+    def load_pixels(self, match_resets_to_mc_particles=False):
 
         self.pixels_ = []
         self.number_pixels_ = len(self.tree_.pixel_x)
 
         for idx in range(self.number_pixels_):
 
-            pixel = Pixel(self.tree_.pixel_x[idx], self.tree_.pixel_y,
-                          self.tree_.pixel_reset, self.tree_.pixel_tslr)
+            if match_resets_to_mc_particles:
+
+                pixel = Pixel(self.tree_.pixel_x[idx], self.tree_.pixel_y[idx],
+                              self.tree_.pixel_reset[idx],
+                              self.tree_.pixel_tslr[idx],
+                              self.tree_.pixel_reset_truth_track_id[idx],
+                              self.tree_.pixel_reset_truth_weight[idx])
+
+            else:
+
+                pixel = Pixel(self.tree_.pixel_x[idx], self.tree_.pixel_y[idx],
+                              self.tree_.pixel_reset[idx],
+                              self.tree_.pixel_tslr[idx])
+
+            pixel.load_resets()
 
             self.pixels_.append(pixel)
 
@@ -314,6 +336,9 @@ class EventHandler:
 
     def mc_particles(self):
         return self.mc_particles_
+
+    def mc_particle_map(self):
+        return self.mc_particle_map_
 
     #--------------------------------------------------------------------------
     # return list of MC hits
