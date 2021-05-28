@@ -69,6 +69,7 @@ with uproot.open(file_path) as f:
 
         # pixel information [Q_PIX_RTD]
         'pixel_x', 'pixel_y', 'pixel_reset', 'pixel_tslr',
+        'pixel_reset_truth_track_id', 'pixel_reset_truth_weight',
 
     ]
 
@@ -100,6 +101,10 @@ with uproot.open(file_path) as f:
         pixel_reset_array = arrays['pixel_reset']
         pixel_tslr_array = arrays['pixel_tslr']
 
+        # get pixel MC truth arrays
+        pixel_reset_track_id_array = arrays['pixel_reset_truth_track_id']
+        pixel_reset_weight_array = arrays['pixel_reset_truth_weight']
+
         # get number of events
         number_events = len(event_array)
 
@@ -114,6 +119,8 @@ with uproot.open(file_path) as f:
             pixel_y = pixel_y_array[idx]
             pixel_reset = pixel_reset_array[idx]
             pixel_tslr = pixel_tslr_array[idx]
+            pixel_reset_track_id = pixel_reset_track_id_array[idx]
+            pixel_reset_weight = pixel_reset_weight_array[idx]
 
             # get number of pixels in event
             number_pixels = len(pixel_x)
@@ -124,7 +131,7 @@ with uproot.open(file_path) as f:
             for px in range(number_pixels):
 
                 # print the pixel coordinate
-                print('  (x, y): ({}, {})'.format(pixel_x[px], pixel_y[px]))
+                print('  pixel (x, y): ({}, {})'.format(pixel_x[px], pixel_y[px]))
 
                 # print list of resets associated with this pixel
                 print('  resets:', pixel_reset[px])
@@ -143,6 +150,27 @@ with uproot.open(file_path) as f:
 
                     # get time since last reset
                     tslr = pixel_tslr[px][rst]
+
+                    # get track IDs of MC particles responsible for this reset
+                    mc_track_ids = pixel_reset_track_id[px][rst]
+                    mc_weights = pixel_reset_weight[px][rst]
+
+                    # get numbers of MC particles responsible for this reset
+                    number_mc_particles = len(mc_track_ids)
+
+                    # print reset, tslr, and z
+                    print('    reset time [ns]:', reset * 1e9,
+                          '; time since last reset [ns]:', tslr * 1e9,
+                          '; z [cm]:', reset * drift_velocity)
+
+                    # print list of track IDs and weights
+                    print('      MC particle track IDs:', mc_track_ids)
+                    print('      MC weights:', mc_weights)
+
+                    # # loop over MC particles
+                    # for mcp in range(number_mc_particles):
+                    #     mc_track_id = mc_track_ids[mcp]
+                    #     mc_weight = mc_weights[mcp]
 
             #------------------------------------------------------------------
             # extract spatial information from pixels and resets
