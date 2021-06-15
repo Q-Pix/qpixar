@@ -15,7 +15,6 @@ import awkward as ak
 
 import qpixtools as qp
 
-import pprint
 import textwrap
 import json
 
