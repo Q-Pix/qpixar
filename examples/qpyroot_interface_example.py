@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 # -----------------------------------------------------------------------------
+# DO NOT USE THIS FOR PRODUCTION.
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 #  qpyroot_interface_example.py
 #
 #  Example for reading from ROOT file using the qpyroot interface
