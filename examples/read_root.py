@@ -10,6 +10,7 @@
 
 import argparse
 import numpy as np
+import awkward as ak
 import uproot
 
 # parse arguments from command
@@ -176,39 +177,55 @@ with uproot.open(file_path) as f:
             # extract spatial information from pixels and resets
             #------------------------------------------------------------------
 
-            # pixel array
-            pix_array = list(np.empty((1, 4)))
-
-            # iterate through pixels and fill pixel array
-            for px in range(number_pixels):
-
-                # get number of resets for this pixel
-                number_resets = len(pixel_reset[px])
-
-                # iterate through resets
-                for rst in range(number_resets):
-
-                    # get reset time
-                    reset = pixel_reset[px][rst]
-
-                    # get time since last reset
-                    tslr = pixel_tslr[px][rst]
-
-                    # append to pixel array
-                    pix_array.append([pixel_x[px], pixel_y[px], reset, tslr])
-
-            # convert list to array
-            if len(pix_array) > 1:
-                # ignore dummy element
-                pix_array = np.array(pix_array[1:], dtype=int)
-            else:
-                pix_array = np.array(pix_array, dtype=int)
+            pixel_multiplicity = ak.count(pixel_reset, axis=1)
+            pix_t = ak.flatten(pixel_reset).to_numpy()
+            pix_x = np.repeat(pixel_x.to_numpy(), pixel_multiplicity)
+            pix_y = np.repeat(pixel_y.to_numpy(), pixel_multiplicity)
+            pix_tslr = ak.flatten(pixel_tslr).to_numpy()
 
             # convert to physical units
-            pix_x = pix_array[:, 0] * pixel_size  # cm
-            pix_y = pix_array[:, 1] * pixel_size  # cm
-            pix_z = pix_array[:, 2] * drift_velocity  # cm
-            pix_tslr = pix_array[:, 3] * 1e9 # ns
+            pix_x = pix_x * pixel_size  # cm
+            pix_y = pix_y * pixel_size  # cm
+            pix_z = pix_t * drift_velocity  # cm
+            pix_tslr = pix_tslr * 1e9  # ns
+
+            #-------------------------------------------------
+            # this is slower than the method used above
+            #-------------------------------------------------
+
+            # # pixel array
+            # pix_array = list(np.empty((1, 4)))
+
+            # # iterate through pixels and fill pixel array
+            # for px in range(number_pixels):
+
+            #     # get number of resets for this pixel
+            #     number_resets = len(pixel_reset[px])
+
+            #     # iterate through resets
+            #     for rst in range(number_resets):
+
+            #         # get reset time
+            #         reset = pixel_reset[px][rst]
+
+            #         # get time since last reset
+            #         tslr = pixel_tslr[px][rst]
+
+            #         # append to pixel array
+            #         pix_array.append([pixel_x[px], pixel_y[px], reset, tslr])
+
+            # # convert list to array
+            # if len(pix_array) > 1:
+            #     # ignore dummy element
+            #     pix_array = np.array(pix_array[1:], dtype=int)
+            # else:
+            #     pix_array = np.array(pix_array, dtype=int)
+
+            # # convert to physical units
+            # pix_x = pix_array[:, 0] * pixel_size  # cm
+            # pix_y = pix_array[:, 1] * pixel_size  # cm
+            # pix_z = pix_array[:, 2] * drift_velocity  # cm
+            # pix_tslr = pix_array[:, 3] * 1e9 # ns
 
             #------------------------------------------------------------------
 
