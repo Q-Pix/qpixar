@@ -13,14 +13,18 @@ import numpy as np
 import awkward as ak
 import uproot
 
-input_dir = "/n/home02/jh/repos/qpixrtd/EXAMPLE/output"
+np.random.seed(2)
+
+# input_dir = "/n/home02/jh/repos/qpixrtd/EXAMPLE/output"
+input_dir = "/Volumes/seagate/work/qpix/supernova_test/s_bg_test"
 
 file_array = [
 
     # buffer 0
     {
         # signal files
-        input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
+        # input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
+        input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
         # background files
         input_dir + "/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
         input_dir + "/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
@@ -29,13 +33,15 @@ file_array = [
         input_dir + "/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
         input_dir + "/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
         input_dir + "/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
-        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
+        # input_dir + "/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
+        # input_dir + "/SUPERNOVA_BACKGROUND_RTD_0008.root" : 0,
     },
 
     # # buffer 1
     # {
     #     # signal files
     #     input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
+    #     input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
     #     # background files
     #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
     #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
@@ -56,6 +62,14 @@ for buffer_idx in range(len(file_array)):
     # print(files)
     # print(len(files))
     # print(files.items())
+
+    signal_x = []
+    signal_y = []
+    signal_t = []
+
+    background_x = []
+    background_y = []
+    background_t = []
 
     for file_path, signal_flag in files.items():
         print(file_path, signal_flag)
@@ -148,18 +162,38 @@ for buffer_idx in range(len(file_array)):
                 # get number of events
                 number_events = len(event_array)
 
-
                 #--------------------------------------------------------------
                 # extract spatial information from pixels and resets
                 #--------------------------------------------------------------
 
-                pixel_multiplicity = ak.count(pixel_reset_array, axis=2)
-                pixel_multiplicity = ak.flatten(pixel_multiplicity)
+                signal_idx = -1
 
-                pixel_x = np.repeat(ak.flatten(pixel_x_array).to_numpy(), pixel_multiplicity)
-                pixel_y = np.repeat(ak.flatten(pixel_y_array).to_numpy(), pixel_multiplicity)
-                pixel_reset = ak.flatten(pixel_reset_array, axis=None).to_numpy()
-                pixel_tslr = ak.flatten(pixel_tslr_array, axis=None).to_numpy()
+                pixel_multiplicity = None
+
+                pixel_x = None
+                pixel_y = None
+                pixel_reset = None
+                pixel_tslr = None
+
+                if signal_flag:
+
+                    signal_idx = np.random.randint(number_events)
+
+                    pixel_multiplicity = ak.count(pixel_reset_array[signal_idx], axis=1)
+                    pixel_x = np.repeat(pixel_x_array[signal_idx].to_numpy(), pixel_multiplicity)
+                    pixel_y = np.repeat(pixel_y_array[signal_idx].to_numpy(), pixel_multiplicity)
+                    pixel_reset = ak.flatten(pixel_reset_array[signal_idx]).to_numpy()
+                    pixel_tslr = ak.flatten(pixel_tslr_array[signal_idx]).to_numpy()
+
+                else:
+
+                    pixel_multiplicity = ak.count(pixel_reset_array, axis=2)
+                    pixel_multiplicity = ak.flatten(pixel_multiplicity)
+
+                    pixel_x = np.repeat(ak.flatten(pixel_x_array).to_numpy(), pixel_multiplicity)
+                    pixel_y = np.repeat(ak.flatten(pixel_y_array).to_numpy(), pixel_multiplicity)
+                    pixel_reset = ak.flatten(pixel_reset_array, axis=None).to_numpy()
+                    pixel_tslr = ak.flatten(pixel_tslr_array, axis=None).to_numpy()
 
                 """
 
@@ -267,19 +301,79 @@ for buffer_idx in range(len(file_array)):
 
                     """
 
-                #----------------------------------------------------------
+                #--------------------------------------------------------------
                 # check if this is a signal event
-                #----------------------------------------------------------
+                #--------------------------------------------------------------
 
                 if signal_flag:
                     # this is a signal event
-                    pass
+                    signal_x.extend(pixel_x)
+                    signal_y.extend(pixel_y)
+                    signal_t.extend(pixel_reset)
                 else:
                     # this is a backgroud event
-                    pass
+                    background_x.extend(pixel_x)
+                    background_y.extend(pixel_y)
+                    background_t.extend(pixel_reset)
 
-                #----------------------------------------------------------
-                # do things with pixels here
-                #----------------------------------------------------------
+    #--------------------------------------------------------------------------
+    # do things with pixels here
+    #--------------------------------------------------------------------------
 
-                #----------------------------------------------------------
+    # print("signal_x", np.array(signal_x))
+    # print("signal_y", np.array(signal_y))
+    # print("signal_t", np.array(signal_t))
+
+    # print("background_t", np.array(background_t))
+
+    # print("background_x.shape", np.array(background_x).shape)
+    # print("background_y.shape", np.array(background_y).shape)
+    # print("background_t.shape", np.array(background_t).shape)
+
+    s_x = np.array(signal_x) * pixel_size
+    s_y = np.array(signal_y) * pixel_size
+    s_z = np.array(signal_t) * drift_velocity
+    s_t = np.array(signal_t)
+
+    bg_x = np.array(background_x) * pixel_size
+    bg_y = np.array(background_y) * pixel_size
+    bg_z = np.array(background_t) * drift_velocity
+    bg_t = np.array(background_t)
+
+    x = np.concatenate((s_x, bg_x))
+    y = np.concatenate((s_y, bg_y))
+    z = np.concatenate((s_z, bg_z))
+    t = np.concatenate((s_t, bg_t))
+
+    labels_true = np.concatenate(
+        (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
+        dtype=None)
+
+    X = np.c_[x, y, z]
+
+    from sklearn.cluster import DBSCAN
+    from sklearn import metrics
+
+    # run DBSCAN
+    db = DBSCAN(eps=0.3, min_samples=3).fit(X)
+    core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+    core_samples_mask[db.core_sample_indices_] = True
+    labels = db.labels_
+
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise_ = list(labels).count(-1)
+
+    print('Estimated number of clusters: %d' % n_clusters_)
+    print('Estimated number of noise points: %d' % n_noise_)
+    print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
+    print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
+    print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
+    print("Adjusted Rand Index: %0.3f"
+          % metrics.adjusted_rand_score(labels_true, labels))
+    print("Adjusted Mutual Information: %0.3f"
+          % metrics.adjusted_mutual_info_score(labels_true, labels))
+    print("Silhouette Coefficient: %0.3f"
+          % metrics.silhouette_score(X, labels))
+
+    #--------------------------------------------------------------------------
+
