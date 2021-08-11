@@ -347,7 +347,7 @@ for buffer_idx in range(len(file_array)):
 
     labels_true = np.concatenate(
         (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
-        dtype=None)
+        dtype=int)
 
     X = np.c_[x, y, z]
 
