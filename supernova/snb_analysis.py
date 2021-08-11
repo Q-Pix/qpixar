@@ -10,45 +10,47 @@
 
 import sys
 import numpy as np
+import awkward as ak
 import uproot
 
-# signal files
+input_dir = "/n/home02/jh/repos/qpixrtd/EXAMPLE/output"
 
 file_array = [
 
     # buffer 0
     {
         # signal files
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_NEUTRINO_RTD.root" : 1,
+        input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
         # background files
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0002.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0003.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
-        "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0002.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0003.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
+        input_dir + "/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
     },
 
     # # buffer 1
     # {
     #     # signal files
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_NEUTRINO_RTD.root" : 1,
+    #     input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
     #     # background files
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0002.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0003.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
-    #     "/n/home02/jh/repos/qpixrtd/EXAMPLE/output/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0002.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0003.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
+    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
     # },
 
 ]
 
 for buffer_idx in range(len(file_array)):
+
     print("Buffer index:", buffer_idx)
     files = file_array[buffer_idx]
     # print(files)
@@ -145,6 +147,21 @@ for buffer_idx in range(len(file_array)):
 
                 # get number of events
                 number_events = len(event_array)
+
+
+                #--------------------------------------------------------------
+                # extract spatial information from pixels and resets
+                #--------------------------------------------------------------
+
+                pixel_multiplicity = ak.count(pixel_reset_array, axis=2)
+                pixel_multiplicity = ak.flatten(pixel_multiplicity)
+
+                pixel_x = np.repeat(ak.flatten(pixel_x_array).to_numpy(), pixel_multiplicity)
+                pixel_y = np.repeat(ak.flatten(pixel_y_array).to_numpy(), pixel_multiplicity)
+                pixel_reset = ak.flatten(pixel_reset_array, axis=None).to_numpy()
+                pixel_tslr = ak.flatten(pixel_tslr_array, axis=None).to_numpy()
+
+                """
 
                 # loop over events
                 for idx in range(number_events):
@@ -248,19 +265,21 @@ for buffer_idx in range(len(file_array)):
                     pix_z = pix_array[:, 2] * drift_velocity  # cm
                     pix_tslr = pix_array[:, 3] * 1e9 # ns
 
-                    #----------------------------------------------------------
-                    # check if this is a signal event
-                    #----------------------------------------------------------
+                    """
 
-                    if signal_flag:
-                        # this is a signal event
-                        pass
-                    else:
-                        # this is a backgroud event
-                        pass
+                #----------------------------------------------------------
+                # check if this is a signal event
+                #----------------------------------------------------------
 
-                    #----------------------------------------------------------
-                    # do things with pixels here
-                    #----------------------------------------------------------
+                if signal_flag:
+                    # this is a signal event
+                    pass
+                else:
+                    # this is a backgroud event
+                    pass
 
-                    #----------------------------------------------------------
+                #----------------------------------------------------------
+                # do things with pixels here
+                #----------------------------------------------------------
+
+                #----------------------------------------------------------
