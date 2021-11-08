@@ -1,22 +1,36 @@
 #!/usr/bin/env python
 
 # -----------------------------------------------------------------------------
-#  snb_analysis.py
+#  dbscan.py
 #
 #  Example for reading from ROOT files
 #   * Author: Everybody is an author!
 #   * Creation date: 2 August 2021
 # -----------------------------------------------------------------------------
 
-import sys
+import sys, argparse
 import numpy as np
 import awkward as ak
 import uproot
 
+# # parse arguments from command
+# parser = argparse.ArgumentParser(description="dbscan")
+# parser.add_argument("file", type=str, default=None, help="path to ROOT file")
+# parser.add_argument("background", type=int, default=None,
+#                     help="index of background files")
+# parser.add_argument("signal", type=int, default=None,
+#                     help="index of signa files")
+# 
+# args = parser.parse_args()
+# file_path = str(args.file)
+
 np.random.seed(2)
 
 # input_dir = "/n/home02/jh/repos/qpixrtd/EXAMPLE/output"
-input_dir = "/Volumes/seagate/work/qpix/supernova_test/s_bg_test"
+# input_dir = "/Volumes/seagate/work/qpix/supernova_test/s_bg_test"
+# input_dir = "/Volumes/seagate/work/qpix/supernova_test"
+# input_dir = "/Volumes/seagate/work/qpix/supernova_test/rtd/nu_e"
+input_dir = "/Volumes/seagate/work/qpix/supernova/isotropic/snb_timing/ve_cc"
 bg_input_dir = "/Volumes/seagate/work/qpix/supernova/production"
 
 file_array = [
@@ -25,7 +39,10 @@ file_array = [
     {
         # signal files
         # input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
-        input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
+        # input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
+        # input_dir + "/marley_100000_events_rtd.root" : 1,
+        # input_dir + "/Nu_e-rtd-5382.root" : 1,
+        input_dir + "/000001/ve_cc_rtd_slim_000001.root" : 1,
         # background files
         bg_input_dir + "/000001/Ar39_rtd_slim_000001.root"  : 0,
         bg_input_dir + "/000001/Kr85_rtd_slim_000001.root"  : 0,
@@ -429,7 +446,8 @@ for buffer_idx in range(len(file_array)):
     x = np.vstack([
         neutrino_energy_array,
         signal_energy_deposit_array,
-        eps_array, min_samples_array,
+        eps_array,
+        min_samples_array,
         signal_resets_total_array,
         signal_resets_clustered_array,
         resets_clustered_array,
@@ -442,6 +460,12 @@ for buffer_idx in range(len(file_array)):
 
     print(x)
     print(x.T)
+
+    with open("test.txt", "ab") as f:
+        f.write(b"\n")
+        np.savetxt(f, x.T)
+
+    # neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
 
     #--------------------------------------------------------------------------
 
