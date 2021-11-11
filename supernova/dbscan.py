@@ -8,68 +8,84 @@
 #   * Creation date: 2 August 2021
 # -----------------------------------------------------------------------------
 
-import sys, argparse
+from __future__ import print_function
+
+import sys
+import argparse
 import numpy as np
 import awkward as ak
 import uproot
 
-# # parse arguments from command
-# parser = argparse.ArgumentParser(description="dbscan")
-# parser.add_argument("file", type=str, default=None, help="path to ROOT file")
-# parser.add_argument("background", type=int, default=None,
-#                     help="index of background files")
-# parser.add_argument("signal", type=int, default=None,
-#                     help="index of signa files")
-# 
-# args = parser.parse_args()
-# file_path = str(args.file)
+# parse arguments from command
+parser = argparse.ArgumentParser(description="dbscan")
+parser.add_argument("signal", type=int, help="index of signal files")
+parser.add_argument("background", type=int, help="index of background files")
+parser.add_argument("--event", type=int, help="index of signal event")
+parser.add_argument("--events", nargs="+", type=int,
+                    help="indices of signal event")
 
-np.random.seed(2)
+args = parser.parse_args()
+signal = args.signal
+background = args.background
+event = args.event
+events = args.events
 
-# input_dir = "/n/home02/jh/repos/qpixrtd/EXAMPLE/output"
-# input_dir = "/Volumes/seagate/work/qpix/supernova_test/s_bg_test"
-# input_dir = "/Volumes/seagate/work/qpix/supernova_test"
-# input_dir = "/Volumes/seagate/work/qpix/supernova_test/rtd/nu_e"
-input_dir = "/Volumes/seagate/work/qpix/supernova/isotropic/snb_timing/ve_cc"
-bg_input_dir = "/Volumes/seagate/work/qpix/supernova/production"
+if signal < 0 or background < 0:
+    raise ValueError("Signal and background file indices should be positive")
+if isinstance(event, int) and event < 0:
+    raise ValueError("Signal event index should be positive")
+if events and np.less(events, 0).any():
+    raise ValueError("Signal event indices should be positive")
+
+signal = str(signal).zfill(6)
+background = str(background).zfill(6)
+events = np.unique(events)
+
+print(signal, background, event, events)
+# print(np.less(events, 0))
+# print(np.less(events, 0).any())
+
+sys.exit()
+
+# np.random.seed(2)
+
+signal_dir = "/n/holystore01/LABS/guenette_lab/Lab/data/q-pix/supernova/isotropic/snb_timing/ve_cc"
+background_dir = "/n/holystore01/LABS/guenette_lab/Lab/data/q-pix/supernova/production"
 
 file_array = [
 
     # buffer 0
     {
         # signal files
-        # input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
-        # input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
-        # input_dir + "/marley_100000_events_rtd.root" : 1,
-        # input_dir + "/Nu_e-rtd-5382.root" : 1,
-        input_dir + "/000001/ve_cc_rtd_slim_000001.root" : 1,
+        signal_dir + "/" + signal + "/ve_cc_rtd_slim_" + signal + ".root" : 1,
         # background files
-        bg_input_dir + "/000001/Ar39_rtd_slim_000001.root"  : 0,
-        bg_input_dir + "/000001/Kr85_rtd_slim_000001.root"  : 0,
-        bg_input_dir + "/000001/Bi214_rtd_slim_000001.root" : 0,
-        bg_input_dir + "/000001/K40_rtd_slim_000001.root"   : 0,
-        bg_input_dir + "/000001/Rn222_rtd_slim_000001.root" : 0,
-        bg_input_dir + "/000001/Pb214_rtd_slim_000001.root" : 0,
-        bg_input_dir + "/000001/Co60_rtd_slim_000001.root"  : 0,
-        bg_input_dir + "/000001/K42_rtd_slim_000001.root"   : 0,
-        bg_input_dir + "/000001/Ar42_rtd_slim_000001.root"  : 0,
-        bg_input_dir + "/000001/Po210_rtd_slim_000001.root" : 0,
+        background_dir + "/" + background + "/Ar39_rtd_slim_"  + background + ".root" : 0,
+        background_dir + "/" + background + "/Kr85_rtd_slim_"  + background + ".root" : 0,
+        background_dir + "/" + background + "/Bi214_rtd_slim_" + background + ".root" : 0,
+        background_dir + "/" + background + "/K40_rtd_slim_"   + background + ".root" : 0,
+        background_dir + "/" + background + "/Rn222_rtd_slim_" + background + ".root" : 0,
+        background_dir + "/" + background + "/Pb214_rtd_slim_" + background + ".root" : 0,
+        background_dir + "/" + background + "/Co60_rtd_slim_"  + background + ".root" : 0,
+        background_dir + "/" + background + "/K42_rtd_slim_"   + background + ".root" : 0,
+        background_dir + "/" + background + "/Ar42_rtd_slim_"  + background + ".root" : 0,
+        background_dir + "/" + background + "/Po210_rtd_slim_" + background + ".root" : 0,
     },
 
     # # buffer 1
     # {
     #     # signal files
-    #     input_dir + "/SUPERNOVA_NEUTRINO_RTD.root" : 1,
-    #     input_dir + "/SUPERNOVA_NEUTRINO_RTD_1000_events.root" : 1,
+    #     signal_dir + "/" + signal + "/ve_cc_rtd_slim_" + signal + ".root" : 1,
     #     # background files
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0000.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0001.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0002.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0003.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0004.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0005.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0006.root" : 0,
-    #     input_dir + "/SUPERNOVA_BACKGROUND_RTD_0007.root" : 0,
+    #     background_dir + "/" + background + "/Ar39_rtd_slim_"  + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Kr85_rtd_slim_"  + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Bi214_rtd_slim_" + background + ".root" : 0,
+    #     background_dir + "/" + background + "/K40_rtd_slim_"   + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Rn222_rtd_slim_" + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Pb214_rtd_slim_" + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Co60_rtd_slim_"  + background + ".root" : 0,
+    #     background_dir + "/" + background + "/K42_rtd_slim_"   + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Ar42_rtd_slim_"  + background + ".root" : 0,
+    #     background_dir + "/" + background + "/Po210_rtd_slim_" + background + ".root" : 0,
     # },
 
 ]
@@ -82,6 +98,9 @@ for buffer_idx in range(len(file_array)):
     # print(len(files))
     # print(files.items())
 
+    neutrino_x = []
+    neutrino_y = []
+    neutrino_z = []
     neutrino_energy = []
     signal_energy_deposit = []
 
@@ -137,20 +156,26 @@ for buffer_idx in range(len(file_array)):
                 # generator particle information [Q_PIX_GEANT4]
                 'generator_initial_number_particles',
                 'generator_initial_particle_pdg_code',
+                'generator_initial_particle_x',
+                'generator_initial_particle_y',
+                'generator_initial_particle_z',
+                'generator_initial_particle_t',
                 'generator_initial_particle_px',
                 'generator_initial_particle_py',
                 'generator_initial_particle_pz',
                 'generator_initial_particle_energy',
                 'generator_initial_particle_mass',
-                'generator_initial_particle_t',
                 'generator_final_number_particles',
                 'generator_final_particle_pdg_code',
+                'generator_final_particle_x',
+                'generator_final_particle_y',
+                'generator_final_particle_z',
+                'generator_final_particle_t',
                 'generator_final_particle_px',
                 'generator_final_particle_py',
                 'generator_final_particle_pz',
                 'generator_final_particle_energy',
                 'generator_final_particle_mass',
-                'generator_final_particle_t',
 
                 # # MC particle information [Q_PIX_GEANT4]
                 # 'particle_track_id', 'particle_pdg_code',
@@ -182,38 +207,50 @@ for buffer_idx in range(len(file_array)):
                 # generator particle arrays
                 generator_initial_number_particles_array = None
                 generator_initial_particle_pdg_code_array = None
+                generator_initial_particle_x_array = None
+                generator_initial_particle_y_array = None
+                generator_initial_particle_z_array = None
+                generator_initial_particle_t_array = None
                 generator_initial_particle_px_array = None
                 generator_initial_particle_py_array = None
                 generator_initial_particle_pz_array = None
                 generator_initial_particle_energy_array = None
                 generator_initial_particle_mass_array = None
-                generator_initial_particle_t_array = None
                 generator_final_number_particles_array = None
                 generator_final_particle_pdg_code_array = None
+                generator_final_particle_x_array = None
+                generator_final_particle_y_array = None
+                generator_final_particle_z_array = None
+                generator_final_particle_t_array = None
                 generator_final_particle_px_array = None
                 generator_final_particle_py_array = None
                 generator_final_particle_pz_array = None
                 generator_final_particle_energy_array = None
                 generator_final_particle_mass_array = None
-                generator_final_particle_t_array = None
 
                 if signal_flag:
                     generator_initial_number_particles_array = arrays['generator_initial_number_particles']
                     generator_initial_particle_pdg_code_array = arrays['generator_initial_particle_pdg_code']
+                    generator_initial_particle_x_array = arrays['generator_initial_particle_x']
+                    generator_initial_particle_y_array = arrays['generator_initial_particle_y']
+                    generator_initial_particle_z_array = arrays['generator_initial_particle_z']
+                    generator_initial_particle_t_array = arrays['generator_initial_particle_t']
                     generator_initial_particle_px_array = arrays['generator_initial_particle_px']
                     generator_initial_particle_py_array = arrays['generator_initial_particle_py']
                     generator_initial_particle_pz_array = arrays['generator_initial_particle_pz']
                     generator_initial_particle_energy_array = arrays['generator_initial_particle_energy']
                     generator_initial_particle_mass_array = arrays['generator_initial_particle_mass']
-                    generator_initial_particle_t_array = arrays['generator_initial_particle_t']
                     generator_final_number_particles_array = arrays['generator_final_number_particles']
                     generator_final_particle_pdg_code_array = arrays['generator_final_particle_pdg_code']
+                    generator_final_particle_x_array = arrays['generator_final_particle_x']
+                    generator_final_particle_y_array = arrays['generator_final_particle_y']
+                    generator_final_particle_z_array = arrays['generator_final_particle_z']
+                    generator_final_particle_t_array = arrays['generator_final_particle_t']
                     generator_final_particle_px_array = arrays['generator_final_particle_px']
                     generator_final_particle_py_array = arrays['generator_final_particle_py']
                     generator_final_particle_pz_array = arrays['generator_final_particle_pz']
                     generator_final_particle_energy_array = arrays['generator_final_particle_energy']
                     generator_final_particle_mass_array = arrays['generator_final_particle_mass']
-                    generator_final_particle_t_array = arrays['generator_final_particle_t']
 
                 # # get MC particle arrays
                 # particle_track_id_array = arrays['particle_track_id']
@@ -259,7 +296,12 @@ for buffer_idx in range(len(file_array)):
 
                 if signal_flag:
 
-                    signal_idx = np.random.randint(number_events)
+                    # signal_idx = np.random.randint(number_events)
+                    signal_idx = event
+
+                    if signal_idx >= number_events:
+                        msg = "Event index out of range: signal index {} not in [0, {})".format(signal_idx, number_events)
+                        raise ValueError(msg)
 
                     pixel_multiplicity = ak.count(pixel_reset_array[signal_idx], axis=1)
                     pixel_x = np.repeat(pixel_x_array[signal_idx].to_numpy(), pixel_multiplicity)
@@ -287,6 +329,9 @@ for buffer_idx in range(len(file_array)):
                     signal_y.extend(pixel_y)
                     signal_t.extend(pixel_reset)
                     signal_energy_deposit.append(energy_deposit_array[signal_idx])
+                    neutrino_x.append(generator_initial_particle_x_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                    neutrino_y.append(generator_initial_particle_y_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                    neutrino_z.append(generator_initial_particle_z_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
                     neutrino_energy.append(generator_initial_particle_energy_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
                 else:
                     # this is a backgroud event
@@ -323,10 +368,13 @@ for buffer_idx in range(len(file_array)):
     z = np.concatenate((s_z, bg_z))
     t = np.concatenate((s_t, bg_t))
 
+    # labels_true = np.concatenate(
+    #     (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
+    #     #(np.ones(s_t.shape, dtype=int), np.zeros(bg_t.shape, dtype=int)),
+    #     dtype=int)
+
     labels_true = np.concatenate(
-        (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
-        #(np.ones(s_t.shape, dtype=int), np.zeros(bg_t.shape, dtype=int)),
-        dtype=int)
+        (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int))).astype(int)
 
     X = np.c_[x, y, z]
     # print(x, y, z)
@@ -349,6 +397,9 @@ for buffer_idx in range(len(file_array)):
     from sklearn.cluster import DBSCAN
     from sklearn import metrics
 
+    neutrino_x_array = []
+    neutrino_y_array = []
+    neutrino_z_array = []
     neutrino_energy_array = []
     signal_energy_deposit_array = []
     eps_array = []
@@ -413,6 +464,7 @@ for buffer_idx in range(len(file_array)):
             if resets_clustered > 0:
                 cleanliness = float(signal_resets_clustered) / float(resets_clustered)
 
+            print('Interaction vertex [cm]: (%s, %s, %s)' % (neutrino_x[0], neutrino_y[0], neutrino_z[0]))
             print('Neutrino energy [MeV]:', neutrino_energy[0])
             print('Signal energy deposit [MeV]:', signal_energy_deposit[0])
             print('Total number of resets:', resets_total)
@@ -424,6 +476,9 @@ for buffer_idx in range(len(file_array)):
 
             # eps, min_samples
 
+            neutrino_x_array.append(neutrino_x[0])
+            neutrino_y_array.append(neutrino_y[0])
+            neutrino_z_array.append(neutrino_z[0])
             neutrino_energy_array.append(neutrino_energy[0])
             signal_energy_deposit_array.append(signal_energy_deposit[0])
             eps_array.append(eps)
@@ -444,6 +499,9 @@ for buffer_idx in range(len(file_array)):
     #--------------------------------------------------------------------------
 
     x = np.vstack([
+        neutrino_x_array,
+        neutrino_y_array,
+        neutrino_z_array,
         neutrino_energy_array,
         signal_energy_deposit_array,
         eps_array,
@@ -465,7 +523,7 @@ for buffer_idx in range(len(file_array)):
         f.write(b"\n")
         np.savetxt(f, x.T)
 
-    # neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
+    # neutrino x | neutrino y | neutrino z | neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
 
     #--------------------------------------------------------------------------
 
