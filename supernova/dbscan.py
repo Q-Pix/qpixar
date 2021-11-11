@@ -101,6 +101,7 @@ for buffer_idx in range(len(file_array)):
     # print(files.items())
 
     signal_event_idx = []
+    signal_event = []
 
     neutrino_x = []
     neutrino_y = []
@@ -316,9 +317,11 @@ for buffer_idx in range(len(file_array)):
                         pixel_tslr = ak.flatten(pixel_tslr_array[signal_idx]).to_numpy()
 
                         signal_event_idx.extend(np.repeat(signal_idx, pixel_reset.shape[0]))
+                        # signal_event.extend(np.repeat(event_array[signal_idx], pixel_reset.shape[0]))
                         signal_x.extend(pixel_x)
                         signal_y.extend(pixel_y)
                         signal_t.extend(pixel_reset)
+                        signal_event.append(event_array[signal_idx])
                         signal_energy_deposit.append(energy_deposit_array[signal_idx])
                         neutrino_x.append(generator_initial_particle_x_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
                         neutrino_y.append(generator_initial_particle_y_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
@@ -385,6 +388,25 @@ for buffer_idx in range(len(file_array)):
     bg_z = np.array(background_t) * drift_velocity
     bg_t = np.array(background_t)
 
+    # these will be populated and written to a ROOT file
+    signal_event_idx_ = []
+    signal_event_ = []
+    neutrino_x_ = []
+    neutrino_y_ = []
+    neutrino_z_ = []
+    neutrino_energy_ = []
+    signal_energy_deposit_ = []
+    signal_resets_total_ = []
+    resets_total_ = []
+    eps_ = []
+    min_samples_ = []
+    resets_clustered_ = []
+    signal_resets_clustered_ = []
+    completeness_ = []
+    cleanliness_ = []
+    number_clusters_ = []
+    resets_not_clustered_ = []
+
     for idx in range(len(events)):
 
         signal_idx = events[idx]
@@ -419,6 +441,7 @@ for buffer_idx in range(len(file_array)):
 
         drift_velocity  # 1.648e5 cm/s == 0.1648 cm/us
         resets_total = len(X)
+        signal_resets_total = np.sum(labels_true == 0)
 
         # sys.exit()
 
@@ -426,6 +449,7 @@ for buffer_idx in range(len(file_array)):
         from sklearn import metrics
 
         signal_event_idx_array = []
+        signal_event_array = []
         neutrino_x_array = []
         neutrino_y_array = []
         neutrino_z_array = []
@@ -435,12 +459,13 @@ for buffer_idx in range(len(file_array)):
         min_samples_array = []
 
         signal_resets_total_array = []
-        signal_resets_clustered_array = []
-        resets_clustered_array = []
         resets_total_array = []
 
+        signal_resets_clustered_array = []
+        resets_clustered_array = []
+
         number_clusters_array = []
-        resets_unclustered_array = []
+        resets_not_clustered_array = []
 
         completeness_array = []
         cleanliness_array = []
@@ -478,15 +503,13 @@ for buffer_idx in range(len(file_array)):
                 # print("Silhouette Coefficient: %0.3f"
                 #       % metrics.silhouette_score(X, labels))
 
-                #------------------------------------------------------------------
+                #--------------------------------------------------------------
 
                 signal_resets_clustered = np.sum((labels_true == 0) & (labels > -1))
-
-                completeness = 0
-                cleanliness = 0
-
-                signal_resets_total = np.sum(labels_true == 0)
                 resets_clustered = np.sum(labels > -1)
+
+                completeness = -1
+                cleanliness = -1
 
                 if signal_resets_total > 0:
                     completeness = float(signal_resets_clustered) / float(signal_resets_total)
@@ -494,6 +517,7 @@ for buffer_idx in range(len(file_array)):
                     cleanliness = float(signal_resets_clustered) / float(resets_clustered)
 
                 print('Signal event index:', signal_idx)
+                print('Signal event ID:', signal_event[idx])
                 print('Interaction vertex [cm]: (%s, %s, %s)' % (neutrino_x[idx], neutrino_y[idx], neutrino_z[idx]))
                 print('Neutrino energy [MeV]:', neutrino_energy[idx])
                 print('Signal energy deposit [MeV]:', signal_energy_deposit[idx])
@@ -510,6 +534,7 @@ for buffer_idx in range(len(file_array)):
                 # eps, min_samples
 
                 signal_event_idx_array.append(signal_idx)
+                signal_event_array.append(signal_event[idx])
                 neutrino_x_array.append(neutrino_x[idx])
                 neutrino_y_array.append(neutrino_y[idx])
                 neutrino_z_array.append(neutrino_z[idx])
@@ -519,46 +544,61 @@ for buffer_idx in range(len(file_array)):
                 min_samples_array.append(min_samples)
 
                 signal_resets_total_array.append(signal_resets_total)
+                resets_total_array.append(resets_total)
+
                 signal_resets_clustered_array.append(signal_resets_clustered)
                 resets_clustered_array.append(resets_clustered)
-                resets_total_array.append(resets_total)
                 completeness_array.append(completeness)
                 cleanliness_array.append(cleanliness)
 
                 number_clusters_array.append(n_clusters_)
-                resets_unclustered_array.append(n_noise_)
+                resets_not_clustered_array.append(n_noise_)
 
-                #------------------------------------------------------------------
+                #--------------------------------------------------------------
 
-        #--------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
-        x = np.vstack([
-            signal_event_idx_array,
-            neutrino_x_array,
-            neutrino_y_array,
-            neutrino_z_array,
-            neutrino_energy_array,
-            signal_energy_deposit_array,
-            eps_array,
-            min_samples_array,
-            signal_resets_total_array,
-            signal_resets_clustered_array,
-            resets_clustered_array,
-            resets_total_array,
-            completeness_array,
-            cleanliness_array,
-            number_clusters_array,
-            resets_unclustered_array,
-            ])
+        signal_event_idx_.append(signal_idx)
+        signal_event_.append(signal_event[idx])
+        neutrino_x_.append(neutrino_x[idx])
+        neutrino_y_.append(neutrino_y[idx])
+        neutrino_z_.append(neutrino_z[idx])
+        neutrino_energy_.append(neutrino_energy[idx])
+        signal_energy_deposit_.append(signal_energy_deposit[idx])
+        signal_resets_total_.append(signal_resets_total)
+        resets_total_.append(resets_total)
 
-        print(x)
-        print(x.T)
+        eps_.append(eps_array)
+        min_samples_.append(min_samples_array)
+        resets_clustered_.append(resets_clustered_array)
+        signal_resets_clustered_.append(signal_resets_clustered_array)
+        completeness_.append(completeness_array)
+        cleanliness_.append(cleanliness_array)
+        number_clusters_.append(number_clusters_array)
+        resets_not_clustered_.append(resets_not_clustered_array)
 
-        with open("test.txt", "ab") as f:
-            f.write(b"\n")
-            np.savetxt(f, x.T)
+        #----------------------------------------------------------------------
 
-        # signal idx | neutrino x | neutrino y | neutrino z | neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
+    #--------------------------------------------------------------------------
 
-        #--------------------------------------------------------------------------
+    with uproot.recreate("test.root", compression=None) as root_file:
+
+        root_file["tree"] = ak.zip({
+            "_event"                   : signal_event_,
+            "_neutrino_x"              : neutrino_x_,
+            "_neutrino_y"              : neutrino_y_,
+            "_neutrino_z"              : neutrino_z_,
+            "_neutrino_energy"         : neutrino_energy_,
+            "_neutrino_energy_deposit" : signal_energy_deposit_,
+            "_signal_resets_total"     : signal_resets_total_,
+            "_resets_total"            : resets_total_,
+            "_eps"                     : eps_,
+            "_min_samples"             : min_samples_,
+            "_resets_clustered"        : resets_clustered_,
+            "_signal_resets_clustered" : signal_resets_clustered_,
+            "_number_clusters"         : number_clusters_,
+            "_resets_not_clustered"    : resets_not_clustered_,
+            "_efficiency"              : completeness_,
+            "_purity"                  : cleanliness_,
+        })
 
