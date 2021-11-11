@@ -20,20 +20,22 @@ import uproot
 parser = argparse.ArgumentParser(description="dbscan")
 parser.add_argument("signal", type=int, help="index of signal files")
 parser.add_argument("background", type=int, help="index of background files")
-parser.add_argument("--event", type=int, help="index of signal event")
+# parser.add_argument("--event", type=int, help="index of signal event")
 parser.add_argument("--events", nargs="+", type=int,
                     help="indices of signal event")
+parser.add_argument("-o", "--output", type=str, help="output file")
 
 args = parser.parse_args()
 signal = args.signal
 background = args.background
-event = args.event
+# event = args.event
 events = args.events
+output = args.output
 
 if signal < 0 or background < 0:
     raise ValueError("Signal and background file indices should be positive")
-if isinstance(event, int) and event < 0:
-    raise ValueError("Signal event index should be positive")
+# if isinstance(event, int) and event < 0:
+#     raise ValueError("Signal event index should be positive")
 if events and np.less(events, 0).any():
     raise ValueError("Signal event indices should be positive")
 
@@ -41,11 +43,11 @@ signal = str(signal).zfill(6)
 background = str(background).zfill(6)
 events = np.unique(events)
 
-print(signal, background, event, events)
+print(signal, background, events)
 # print(np.less(events, 0))
 # print(np.less(events, 0).any())
 
-sys.exit()
+# sys.exit()
 
 # np.random.seed(2)
 
@@ -97,6 +99,8 @@ for buffer_idx in range(len(file_array)):
     # print(files)
     # print(len(files))
     # print(files.items())
+
+    signal_event_idx = []
 
     neutrino_x = []
     neutrino_y = []
@@ -297,17 +301,29 @@ for buffer_idx in range(len(file_array)):
                 if signal_flag:
 
                     # signal_idx = np.random.randint(number_events)
-                    signal_idx = event
+                    # signal_idx = event
 
-                    if signal_idx >= number_events:
-                        msg = "Event index out of range: signal index {} not in [0, {})".format(signal_idx, number_events)
-                        raise ValueError(msg)
+                    for signal_idx in events:
 
-                    pixel_multiplicity = ak.count(pixel_reset_array[signal_idx], axis=1)
-                    pixel_x = np.repeat(pixel_x_array[signal_idx].to_numpy(), pixel_multiplicity)
-                    pixel_y = np.repeat(pixel_y_array[signal_idx].to_numpy(), pixel_multiplicity)
-                    pixel_reset = ak.flatten(pixel_reset_array[signal_idx]).to_numpy()
-                    pixel_tslr = ak.flatten(pixel_tslr_array[signal_idx]).to_numpy()
+                        if signal_idx >= number_events:
+                            msg = "Event index out of range: signal index {} not in [0, {})".format(signal_idx, number_events)
+                            raise ValueError(msg)
+
+                        pixel_multiplicity = ak.count(pixel_reset_array[signal_idx], axis=1)
+                        pixel_x = np.repeat(pixel_x_array[signal_idx].to_numpy(), pixel_multiplicity)
+                        pixel_y = np.repeat(pixel_y_array[signal_idx].to_numpy(), pixel_multiplicity)
+                        pixel_reset = ak.flatten(pixel_reset_array[signal_idx]).to_numpy()
+                        pixel_tslr = ak.flatten(pixel_tslr_array[signal_idx]).to_numpy()
+
+                        signal_event_idx.extend(np.repeat(signal_idx, pixel_reset.shape[0]))
+                        signal_x.extend(pixel_x)
+                        signal_y.extend(pixel_y)
+                        signal_t.extend(pixel_reset)
+                        signal_energy_deposit.append(energy_deposit_array[signal_idx])
+                        neutrino_x.append(generator_initial_particle_x_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                        neutrino_y.append(generator_initial_particle_y_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                        neutrino_z.append(generator_initial_particle_z_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                        neutrino_energy.append(generator_initial_particle_energy_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
 
                 else:
 
@@ -319,25 +335,29 @@ for buffer_idx in range(len(file_array)):
                     pixel_reset = ak.flatten(pixel_reset_array, axis=None).to_numpy()
                     pixel_tslr = ak.flatten(pixel_tslr_array, axis=None).to_numpy()
 
+                    background_x.extend(pixel_x)
+                    background_y.extend(pixel_y)
+                    background_t.extend(pixel_reset)
+
                 #--------------------------------------------------------------
                 # check if this is a signal event
                 #--------------------------------------------------------------
 
-                if signal_flag:
-                    # this is a signal event
-                    signal_x.extend(pixel_x)
-                    signal_y.extend(pixel_y)
-                    signal_t.extend(pixel_reset)
-                    signal_energy_deposit.append(energy_deposit_array[signal_idx])
-                    neutrino_x.append(generator_initial_particle_x_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
-                    neutrino_y.append(generator_initial_particle_y_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
-                    neutrino_z.append(generator_initial_particle_z_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
-                    neutrino_energy.append(generator_initial_particle_energy_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
-                else:
-                    # this is a backgroud event
-                    background_x.extend(pixel_x)
-                    background_y.extend(pixel_y)
-                    background_t.extend(pixel_reset)
+                # if signal_flag:
+                #     # this is a signal event
+                #     signal_x.extend(pixel_x)
+                #     signal_y.extend(pixel_y)
+                #     signal_t.extend(pixel_reset)
+                #     signal_energy_deposit.append(energy_deposit_array[signal_idx])
+                #     neutrino_x.append(generator_initial_particle_x_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                #     neutrino_y.append(generator_initial_particle_y_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                #     neutrino_z.append(generator_initial_particle_z_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                #     neutrino_energy.append(generator_initial_particle_energy_array[signal_idx][generator_initial_particle_pdg_code_array[signal_idx] == 12][0])
+                # else:
+                #     # this is a backgroud event
+                #     background_x.extend(pixel_x)
+                #     background_y.extend(pixel_y)
+                #     background_t.extend(pixel_reset)
 
     #--------------------------------------------------------------------------
     # do things with pixels here
@@ -353,6 +373,8 @@ for buffer_idx in range(len(file_array)):
     # print("background_y.shape", np.array(background_y).shape)
     # print("background_t.shape", np.array(background_t).shape)
 
+    s_idx = np.array(signal_event_idx)
+
     s_x = np.array(signal_x) * pixel_size
     s_y = np.array(signal_y) * pixel_size
     s_z = np.array(signal_t) * drift_velocity
@@ -363,167 +385,180 @@ for buffer_idx in range(len(file_array)):
     bg_z = np.array(background_t) * drift_velocity
     bg_t = np.array(background_t)
 
-    x = np.concatenate((s_x, bg_x))
-    y = np.concatenate((s_y, bg_y))
-    z = np.concatenate((s_z, bg_z))
-    t = np.concatenate((s_t, bg_t))
+    for idx in range(len(events)):
 
-    # labels_true = np.concatenate(
-    #     (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
-    #     #(np.ones(s_t.shape, dtype=int), np.zeros(bg_t.shape, dtype=int)),
-    #     dtype=int)
+        signal_idx = events[idx]
 
-    labels_true = np.concatenate(
-        (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int))).astype(int)
+        flag = s_idx == signal_idx
 
-    X = np.c_[x, y, z]
-    # print(x, y, z)
-    # print(X)
-    # print(signal_x, signal_y)
-    # X = np.c_[np.array(signal_x), np.array(signal_y), z]
+        x = np.concatenate((s_x[flag], bg_x))
+        y = np.concatenate((s_y[flag], bg_y))
+        z = np.concatenate((s_z[flag], bg_z))
+        t = np.concatenate((s_t[flag], bg_t))
 
-    print(X)
-    print(X[:, 2])
-    print(labels_true)
-    print(X.shape)
-    print(labels_true.shape)
-    print((labels_true == 0).sum())
+        # labels_true = np.concatenate(
+        #     (np.zeros(s_t.shape, dtype=int), np.ones(bg_t.shape, dtype=int)),
+        #     #(np.ones(s_t.shape, dtype=int), np.zeros(bg_t.shape, dtype=int)),
+        #     dtype=int)
 
-    drift_velocity  # 1.648e5 cm/s == 0.1648 cm/us
-    resets_total = len(X)
+        labels_true = np.concatenate(
+            (np.zeros(s_t[flag].shape, dtype=int), np.ones(bg_t.shape, dtype=int))).astype(int)
 
-    # sys.exit()
+        X = np.c_[x, y, z]
+        # print(x, y, z)
+        # print(X)
+        # print(signal_x, signal_y)
+        # X = np.c_[np.array(signal_x), np.array(signal_y), z]
 
-    from sklearn.cluster import DBSCAN
-    from sklearn import metrics
+        print(X)
+        print(X[:, 2])
+        print(labels_true)
+        print(X.shape)
+        print(labels_true.shape)
+        print((labels_true == 0).sum())
 
-    neutrino_x_array = []
-    neutrino_y_array = []
-    neutrino_z_array = []
-    neutrino_energy_array = []
-    signal_energy_deposit_array = []
-    eps_array = []
-    min_samples_array = []
+        drift_velocity  # 1.648e5 cm/s == 0.1648 cm/us
+        resets_total = len(X)
 
-    signal_resets_total_array = []
-    signal_resets_clustered_array = []
-    resets_clustered_array = []
-    resets_total_array = []
+        # sys.exit()
 
-    number_clusters_array = []
-    resets_unclustered_array = []
+        from sklearn.cluster import DBSCAN
+        from sklearn import metrics
 
-    completeness_array = []
-    cleanliness_array = []
+        signal_event_idx_array = []
+        neutrino_x_array = []
+        neutrino_y_array = []
+        neutrino_z_array = []
+        neutrino_energy_array = []
+        signal_energy_deposit_array = []
+        eps_array = []
+        min_samples_array = []
 
-    # eps_values = np.linspace(0.05, 3, 60).round(decimals=2)
-    eps_values = np.arange(0.05, 3+0.05, 0.05).round(decimals=2)
-    min_samples_values = np.arange(2, 24+1, 1)
+        signal_resets_total_array = []
+        signal_resets_clustered_array = []
+        resets_clustered_array = []
+        resets_total_array = []
 
-    # for testing
-    # eps_values = np.arange(0.05, 1+0.05, 0.05)
-    # min_samples_values = np.arange(2, 24+1, 1)
+        number_clusters_array = []
+        resets_unclustered_array = []
 
-    for eps in eps_values:
-        for min_samples in min_samples_values:
+        completeness_array = []
+        cleanliness_array = []
 
-            # run DBSCAN
-            # db = DBSCAN(eps=0.5, min_samples=5).fit(X)
-            db = DBSCAN(eps=eps, min_samples=min_samples).fit(X)
-            core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-            core_samples_mask[db.core_sample_indices_] = True
-            labels = db.labels_
+        # eps_values = np.linspace(0.05, 3, 60).round(decimals=2)
+        eps_values = np.arange(0.05, 3+0.05, 0.05).round(decimals=2)
+        min_samples_values = np.arange(2, 24+1, 1)
 
-            n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-            n_noise_ = list(labels).count(-1)
+        # for testing
+        # eps_values = np.arange(0.05, 1+0.05, 0.05)
+        # min_samples_values = np.arange(2, 24+1, 1)
 
-            print('Estimated number of clusters: %d' % n_clusters_)
-            print('Estimated number of noise points: %d' % n_noise_)
-            # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
-            # print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
-            # print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
-            # print("Adjusted Rand Index: %0.3f"
-            #       % metrics.adjusted_rand_score(labels_true, labels))
-            # print("Adjusted Mutual Information: %0.3f"
-            #       % metrics.adjusted_mutual_info_score(labels_true, labels))
-            # print("Silhouette Coefficient: %0.3f"
-            #       % metrics.silhouette_score(X, labels))
+        for eps in eps_values:
+            for min_samples in min_samples_values:
 
-            #------------------------------------------------------------------
+                # run DBSCAN
+                # db = DBSCAN(eps=0.5, min_samples=5).fit(X)
+                db = DBSCAN(eps=eps, min_samples=min_samples).fit(X)
+                core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+                core_samples_mask[db.core_sample_indices_] = True
+                labels = db.labels_
 
-            signal_resets_clustered = np.sum((labels_true == 0) & (labels > -1))
+                n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+                n_noise_ = list(labels).count(-1)
 
-            completeness = 0
-            cleanliness = 0
+                # print('Estimated number of clusters: %d' % n_clusters_)
+                # print('Estimated number of noise points: %d' % n_noise_)
+                # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
+                # print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
+                # print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
+                # print("Adjusted Rand Index: %0.3f"
+                #       % metrics.adjusted_rand_score(labels_true, labels))
+                # print("Adjusted Mutual Information: %0.3f"
+                #       % metrics.adjusted_mutual_info_score(labels_true, labels))
+                # print("Silhouette Coefficient: %0.3f"
+                #       % metrics.silhouette_score(X, labels))
 
-            signal_resets_total = np.sum(labels_true == 0)
-            resets_clustered = np.sum(labels > -1)
+                #------------------------------------------------------------------
 
-            if signal_resets_total > 0:
-                completeness = float(signal_resets_clustered) / float(signal_resets_total)
-            if resets_clustered > 0:
-                cleanliness = float(signal_resets_clustered) / float(resets_clustered)
+                signal_resets_clustered = np.sum((labels_true == 0) & (labels > -1))
 
-            print('Interaction vertex [cm]: (%s, %s, %s)' % (neutrino_x[0], neutrino_y[0], neutrino_z[0]))
-            print('Neutrino energy [MeV]:', neutrino_energy[0])
-            print('Signal energy deposit [MeV]:', signal_energy_deposit[0])
-            print('Total number of resets:', resets_total)
+                completeness = 0
+                cleanliness = 0
 
-            print('eps, min_samples:', eps, min_samples)
+                signal_resets_total = np.sum(labels_true == 0)
+                resets_clustered = np.sum(labels > -1)
 
-            print('Completeness: %d / %d = %s' % (signal_resets_clustered, signal_resets_total, completeness))
-            print('Cleanliness:  %d / %d = %s' % (signal_resets_clustered, resets_clustered, cleanliness))
+                if signal_resets_total > 0:
+                    completeness = float(signal_resets_clustered) / float(signal_resets_total)
+                if resets_clustered > 0:
+                    cleanliness = float(signal_resets_clustered) / float(resets_clustered)
 
-            # eps, min_samples
+                print('Signal event index:', signal_idx)
+                print('Interaction vertex [cm]: (%s, %s, %s)' % (neutrino_x[idx], neutrino_y[idx], neutrino_z[idx]))
+                print('Neutrino energy [MeV]:', neutrino_energy[idx])
+                print('Signal energy deposit [MeV]:', signal_energy_deposit[idx])
+                print('Total number of resets:', resets_total)
 
-            neutrino_x_array.append(neutrino_x[0])
-            neutrino_y_array.append(neutrino_y[0])
-            neutrino_z_array.append(neutrino_z[0])
-            neutrino_energy_array.append(neutrino_energy[0])
-            signal_energy_deposit_array.append(signal_energy_deposit[0])
-            eps_array.append(eps)
-            min_samples_array.append(min_samples)
+                print('eps, min_samples: %s, %s' % (eps, min_samples))
 
-            signal_resets_total_array.append(signal_resets_total)
-            signal_resets_clustered_array.append(signal_resets_clustered)
-            resets_clustered_array.append(resets_clustered)
-            resets_total_array.append(resets_total)
-            completeness_array.append(completeness)
-            cleanliness_array.append(cleanliness)
+                print('Estimated number of clusters: %d' % n_clusters_)
+                print('Estimated number of noise points: %d' % n_noise_)
 
-            number_clusters_array.append(n_clusters_)
-            resets_unclustered_array.append(n_noise_)
+                print('Completeness: %d / %d = %s' % (signal_resets_clustered, signal_resets_total, completeness))
+                print('Cleanliness:  %d / %d = %s' % (signal_resets_clustered, resets_clustered, cleanliness))
 
-            #------------------------------------------------------------------
+                # eps, min_samples
 
-    #--------------------------------------------------------------------------
+                signal_event_idx_array.append(signal_idx)
+                neutrino_x_array.append(neutrino_x[idx])
+                neutrino_y_array.append(neutrino_y[idx])
+                neutrino_z_array.append(neutrino_z[idx])
+                neutrino_energy_array.append(neutrino_energy[idx])
+                signal_energy_deposit_array.append(signal_energy_deposit[idx])
+                eps_array.append(eps)
+                min_samples_array.append(min_samples)
 
-    x = np.vstack([
-        neutrino_x_array,
-        neutrino_y_array,
-        neutrino_z_array,
-        neutrino_energy_array,
-        signal_energy_deposit_array,
-        eps_array,
-        min_samples_array,
-        signal_resets_total_array,
-        signal_resets_clustered_array,
-        resets_clustered_array,
-        resets_total_array,
-        completeness_array,
-        cleanliness_array,
-        number_clusters_array,
-        resets_unclustered_array,
-        ])
+                signal_resets_total_array.append(signal_resets_total)
+                signal_resets_clustered_array.append(signal_resets_clustered)
+                resets_clustered_array.append(resets_clustered)
+                resets_total_array.append(resets_total)
+                completeness_array.append(completeness)
+                cleanliness_array.append(cleanliness)
 
-    print(x)
-    print(x.T)
+                number_clusters_array.append(n_clusters_)
+                resets_unclustered_array.append(n_noise_)
 
-    with open("test.txt", "ab") as f:
-        f.write(b"\n")
-        np.savetxt(f, x.T)
+                #------------------------------------------------------------------
 
-    # neutrino x | neutrino y | neutrino z | neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
+        #--------------------------------------------------------------------------
 
-    #--------------------------------------------------------------------------
+        x = np.vstack([
+            signal_event_idx_array,
+            neutrino_x_array,
+            neutrino_y_array,
+            neutrino_z_array,
+            neutrino_energy_array,
+            signal_energy_deposit_array,
+            eps_array,
+            min_samples_array,
+            signal_resets_total_array,
+            signal_resets_clustered_array,
+            resets_clustered_array,
+            resets_total_array,
+            completeness_array,
+            cleanliness_array,
+            number_clusters_array,
+            resets_unclustered_array,
+            ])
+
+        print(x)
+        print(x.T)
+
+        with open("test.txt", "ab") as f:
+            f.write(b"\n")
+            np.savetxt(f, x.T)
+
+        # signal idx | neutrino x | neutrino y | neutrino z | neutrino energy | energy deposited | eps | min_samples | total number of signal resets | number of signal resets clustered | number of resets clustered | total number of resets | completeness | cleanliness | number of clusters | number of resets not clustered
+
+        #--------------------------------------------------------------------------
 
