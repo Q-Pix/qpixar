@@ -20,22 +20,23 @@ import uproot
 parser = argparse.ArgumentParser(description="dbscan")
 parser.add_argument("signal", type=int, help="index of signal files")
 parser.add_argument("background", type=int, help="index of background files")
-# parser.add_argument("--event", type=int, help="index of signal event")
+# parser.add_argument("-s", "--signal", type=int, help="index of signal files",
+#                     required=True)
+# parser.add_argument("-b", "--background", type=int,
+#                     help="index of background files", required=True)
 parser.add_argument("--events", nargs="+", type=int,
-                    help="indices of signal event")
-parser.add_argument("-o", "--output", type=str, help="output file")
+                    help="indices of signal event", required=True)
+parser.add_argument("-o", "--output", type=str, help="output file",
+                    required=True)
 
 args = parser.parse_args()
 signal = args.signal
 background = args.background
-# event = args.event
 events = args.events
 output = args.output
 
 if signal < 0 or background < 0:
     raise ValueError("Signal and background file indices should be positive")
-# if isinstance(event, int) and event < 0:
-#     raise ValueError("Signal event index should be positive")
 if events and np.less(events, 0).any():
     raise ValueError("Signal event indices should be positive")
 
@@ -43,13 +44,9 @@ signal = str(signal).zfill(6)
 background = str(background).zfill(6)
 events = np.unique(events)
 
-print(signal, background, events)
-# print(np.less(events, 0))
-# print(np.less(events, 0).any())
+print(signal, background, events, output)
 
 # sys.exit()
-
-# np.random.seed(2)
 
 signal_dir = "/n/holystore01/LABS/guenette_lab/Lab/data/q-pix/supernova/isotropic/snb_timing/ve_cc"
 background_dir = "/n/holystore01/LABS/guenette_lab/Lab/data/q-pix/supernova/production"
@@ -301,9 +298,6 @@ for buffer_idx in range(len(file_array)):
 
                 if signal_flag:
 
-                    # signal_idx = np.random.randint(number_events)
-                    # signal_idx = event
-
                     for signal_idx in events:
 
                         if signal_idx >= number_events:
@@ -432,12 +426,12 @@ for buffer_idx in range(len(file_array)):
         # print(signal_x, signal_y)
         # X = np.c_[np.array(signal_x), np.array(signal_y), z]
 
-        print(X)
-        print(X[:, 2])
-        print(labels_true)
-        print(X.shape)
-        print(labels_true.shape)
-        print((labels_true == 0).sum())
+        # print(X)
+        # print(X[:, 2])
+        # print(labels_true)
+        # print(X.shape)
+        # print(labels_true.shape)
+        # print((labels_true == 0).sum())
 
         drift_velocity  # 1.648e5 cm/s == 0.1648 cm/us
         resets_total = len(X)
@@ -516,6 +510,7 @@ for buffer_idx in range(len(file_array)):
                 if resets_clustered > 0:
                     cleanliness = float(signal_resets_clustered) / float(resets_clustered)
 
+                print('------------------------------------------------------')
                 print('Signal event index:', signal_idx)
                 print('Signal event ID:', signal_event[idx])
                 print('Interaction vertex [cm]: (%s, %s, %s)' % (neutrino_x[idx], neutrino_y[idx], neutrino_z[idx]))
@@ -581,7 +576,7 @@ for buffer_idx in range(len(file_array)):
 
     #--------------------------------------------------------------------------
 
-    with uproot.recreate("test.root", compression=None) as root_file:
+    with uproot.recreate(output, compression=None) as root_file:
 
         root_file["tree"] = ak.zip({
             "_event"                   : signal_event_,
