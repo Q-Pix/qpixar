@@ -2,7 +2,7 @@ This attachment of qpixar is a way to convert the RTD output files to .txt files
 
 In order to convert the root data to a dataframe in .txt format, run
 
-```$ python root_to_csv.py <input file> <output file>```
+``$ python root_to_csv.py <input file> <output file>``
 
 This will create a folder in the same directory as your input file, labeled with the date and time of creation, and will put all output files into the folder. 
 
